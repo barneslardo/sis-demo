@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sis-demo": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "env": {
+        "SIS_API_URL": "https://sis-api.skylarbarnes.com",
+        "SIS_OAUTH_TOKEN": ""
+      }
+    }
+  }
+}

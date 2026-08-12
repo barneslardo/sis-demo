@@ -1,0 +1,210 @@
+{
+  "context": "SIS Demo — Okta AS configuration required for MCP + DCR integration",
+  "okta_tenant": "https://sledai.oktapreview.com",
+  "authorization_server": {
+    "id": "auszblykhlQkrnOmA1d7",
+    "issuer": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7",
+    "jwks_uri": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7/v1/keys",
+    "token_endpoint": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7/v1/token",
+    "as_metadata_url": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7/.well-known/oauth-authorization-server",
+    "okta_agent_registration_id": "wlpzfntwqat4SXBba1d7"
+  },
+  "resource_server": {
+    "identifier": "https://sis-api.skylarbarnes.com/mcp",
+    "audience": "https://sis-api.skylarbarnes.com/mcp",
+    "mcp_endpoint": "https://sis-api.skylarbarnes.com/mcp",
+    "protected_resource_metadata_url": "https://sis-api.skylarbarnes.com/.well-known/oauth-protected-resource",
+    "api_base": "https://sis-api.skylarbarnes.com/api/v1"
+  },
+  "scopes": [
+    {
+      "name": "sis.admin",
+      "display_name": "SIS Admin",
+      "description": "Full read/write access to all student data across all categories. Bypasses all per-category scope checks.",
+      "category": "system",
+      "status": "existing",
+      "grants_access_to": ["all endpoints", "all MCP tools"],
+      "personas": ["SIS Admin"]
+    },
+    {
+      "name": "sis.students.read",
+      "display_name": "Read Students",
+      "description": "Read access to core student profile records (name, enrollment, contact info).",
+      "category": "core",
+      "status": "existing",
+      "grants_access_to": ["GET /api/v1/students", "GET /api/v1/students/:id"],
+      "mcp_tools": ["list_students", "get_student"],
+      "personas": ["SIS Admin", "Staff (general)", "Enrollment Counselor", "Student Affairs"]
+    },
+    {
+      "name": "sis.students.write",
+      "display_name": "Write Students",
+      "description": "Create, update, and delete core student profile records. Implicitly includes read.",
+      "category": "core",
+      "status": "existing",
+      "grants_access_to": ["POST /api/v1/students", "PATCH /api/v1/students/:id", "DELETE /api/v1/students/:id"],
+      "mcp_tools": ["create_student", "update_student", "delete_student"],
+      "personas": ["SIS Admin", "Registrar"]
+    },
+    {
+      "name": "sis.students.read.self",
+      "display_name": "Read Own Profile",
+      "description": "Allows a student to read their own profile via /api/v1/students/me. Cannot access other students.",
+      "category": "core",
+      "status": "existing",
+      "grants_access_to": ["GET /api/v1/students/me"],
+      "mcp_tools": ["get_my_profile"],
+      "personas": ["Student"]
+    },
+    {
+      "name": "sis.students.ferpa",
+      "display_name": "FERPA Records",
+      "description": "Access to FERPA waiver status, directory information opt-out, authorized release parties, and FERPA holds. Enrollment Counselor persona only.",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/ferpa", "PATCH /api/v1/students/:id/ferpa"],
+      "mcp_tools": ["get_student_ferpa"],
+      "personas": ["Enrollment Counselor"],
+      "dcr_note": "Agent acting on behalf of Enrollment Counselor receives this scope via token exchange; Student Affairs agents must NOT receive it."
+    },
+    {
+      "name": "sis.students.financial",
+      "display_name": "Financial Aid Records",
+      "description": "Access to financial aid status, aid package breakdown, EFC, outstanding balance, scholarships, and financial holds.",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/financial", "PATCH /api/v1/students/:id/financial"],
+      "mcp_tools": ["get_student_financial"],
+      "personas": ["Enrollment Counselor"],
+      "dcr_note": "Agent acting on behalf of Enrollment Counselor receives this scope via token exchange; Student Affairs agents must NOT receive it."
+    },
+    {
+      "name": "sis.students.ada",
+      "display_name": "ADA Accommodation Records",
+      "description": "Access to ADA accommodation types, diagnosis category (broad), documentation status, and assigned coordinator.",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/ada", "PATCH /api/v1/students/:id/ada"],
+      "mcp_tools": ["get_student_ada"],
+      "personas": ["Student Affairs"],
+      "dcr_note": "Agent acting on behalf of Student Affairs receives this scope; Enrollment Counselor agents must NOT receive it."
+    },
+    {
+      "name": "sis.students.disciplinary",
+      "display_name": "Disciplinary Records",
+      "description": "Access to disciplinary incident history including type, outcome, sanctions, appeals, and hearing officer.",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/disciplinary"],
+      "mcp_tools": ["get_student_disciplinary"],
+      "personas": ["Student Affairs"],
+      "dcr_note": "Agent acting on behalf of Student Affairs receives this scope; Enrollment Counselor agents must NOT receive it."
+    },
+    {
+      "name": "sis.students.counselor",
+      "display_name": "Counselor Notes",
+      "description": "Access to academic and guidance counselor notes, follow-up status, and counselor type (academic/guidance/career).",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/counselor-notes", "POST /api/v1/students/:id/counselor-notes"],
+      "mcp_tools": ["get_student_counselor_notes"],
+      "personas": ["Student Affairs"],
+      "dcr_note": "Agent acting on behalf of Student Affairs receives this scope; Enrollment Counselor agents must NOT receive it."
+    },
+    {
+      "name": "sis.students.risk",
+      "display_name": "Risk Indicators",
+      "description": "Access to GPA, GPA trend, attendance rate, missed assignments, failing courses, academic probation flag, and intervention flags.",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/risk", "PATCH /api/v1/students/:id/risk"],
+      "mcp_tools": ["get_student_risk"],
+      "personas": ["Student Affairs"],
+      "dcr_note": "Agent acting on behalf of Student Affairs receives this scope; Enrollment Counselor agents must NOT receive it."
+    },
+    {
+      "name": "sis.students.academic",
+      "display_name": "Academic Record",
+      "description": "Access to major/minor, academic standing, GPA, credit hours, expected graduation, advisor, full transcript, and current courses.",
+      "category": "data_category",
+      "status": "new_must_create",
+      "grants_access_to": ["GET /api/v1/students/:id/academic", "PATCH /api/v1/students/:id/academic"],
+      "mcp_tools": ["get_student_academic"],
+      "personas": ["Student Affairs"],
+      "dcr_note": "Agent acting on behalf of Student Affairs receives this scope; Enrollment Counselor agents must NOT receive it."
+    }
+  ],
+  "required_token_claims": {
+    "standard": [
+      { "claim": "iss", "type": "string", "required": true, "note": "Must match OKTA_ISSUER exactly" },
+      { "claim": "aud", "type": "string|array", "required": true, "note": "Must include https://sis-api.skylarbarnes.com/mcp" },
+      { "claim": "sub", "type": "string", "required": true, "note": "Okta user ID of the human caller" },
+      { "claim": "exp", "type": "number", "required": true, "note": "Unix timestamp" },
+      { "claim": "iat", "type": "number", "required": true, "note": "Unix timestamp" }
+    ],
+    "scopes_claim": {
+      "note": "API checks scp array first, then scope string. Okta custom AS emits scp as array by default — no change needed.",
+      "primary": { "claim": "scp", "type": "array<string>", "example": ["sis.students.ferpa", "sis.students.financial"] },
+      "fallback": { "claim": "scope", "type": "string", "example": "sis.students.ferpa sis.students.financial" }
+    },
+    "custom_required": [
+      {
+        "claim": "email",
+        "type": "string",
+        "required_for": "Student self-service lookup (/me endpoint) and agent identity resolution",
+        "note": "Must be added to the custom AS token via a profile mapping claim. Maps to Okta profile.email.",
+        "okta_action": "Add 'email' claim to the custom AS access token policy — value expression: user.email"
+      },
+      {
+        "claim": "cid",
+        "type": "string",
+        "required_for": "Client identification in API logs",
+        "note": "Okta emits this automatically as the OAuth client_id. No action needed.",
+        "okta_action": "none"
+      }
+    ]
+  },
+  "dcr_access_control_matrix": {
+    "description": "Scope sets granted per persona via DCR token exchange. The agent's token must be bounded by the human caller's granted scopes.",
+    "personas": [
+      {
+        "persona": "Enrollment Counselor",
+        "okta_group_suggestion": "SIS-EnrollmentCounselors",
+        "scopes_granted": ["sis.students.read", "sis.students.ferpa", "sis.students.financial"],
+        "scopes_denied": ["sis.students.ada", "sis.students.disciplinary", "sis.students.counselor", "sis.students.risk", "sis.students.academic"]
+      },
+      {
+        "persona": "Student Affairs",
+        "okta_group_suggestion": "SIS-StudentAffairs",
+        "scopes_granted": ["sis.students.read", "sis.students.ada", "sis.students.disciplinary", "sis.students.counselor", "sis.students.risk", "sis.students.academic"],
+        "scopes_denied": ["sis.students.ferpa", "sis.students.financial"]
+      },
+      {
+        "persona": "Student",
+        "okta_group_suggestion": "SIS-Students",
+        "scopes_granted": ["sis.students.read.self"],
+        "scopes_denied": ["sis.students.read", "sis.students.ferpa", "sis.students.financial", "sis.students.ada", "sis.students.disciplinary", "sis.students.counselor", "sis.students.risk", "sis.students.academic"]
+      },
+      {
+        "persona": "SIS Admin",
+        "okta_group_suggestion": "SIS-Admins",
+        "scopes_granted": ["sis.admin"],
+        "scopes_denied": []
+      }
+    ]
+  },
+  "scope_consent_metadata": {
+    "note": "All scopes are consent=IMPLICIT for this demo (no end-user consent prompt). Set on each scope in the Okta AS.",
+    "default_scope": false,
+    "metadata_endpoint_advertising": "All 11 scopes are advertised in the live PRM at https://sis-api.skylarbarnes.com/.well-known/oauth-protected-resource"
+  },
+  "env_vars": {
+    "OKTA_ISSUER": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7",
+    "OKTA_AUDIENCE": "https://sis-api.skylarbarnes.com/mcp",
+    "MCP_RESOURCE_URL": "https://sis-api.skylarbarnes.com/mcp",
+    "OAUTH_TOKEN_URL": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7/v1/token",
+    "RESOURCE_AS_ISSUER": "https://sledai.oktapreview.com/oauth2/auszblykhlQkrnOmA1d7",
+    "OKTA_AGENT_REGISTRATION_ID": "wlpzfntwqat4SXBba1d7",
+    "AGENT_TOKEN_SCOPE": "sis.students.read sis.students.write sis.students.ferpa sis.students.financial sis.students.ada sis.students.disciplinary sis.students.counselor sis.students.risk sis.students.academic sis.admin openid"
+  }
+}

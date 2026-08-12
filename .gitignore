@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.env.local
+certs/*.pem
+certs/*.crt
+secrets/
+SISadminsApp.txt
+*.log
+.DS_Store
+coverage
+.pm2/
+*.tsbuildinfo

@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  student
+}
+
+model User {
+  id        String   @id @default(uuid())
+  oktaId    String?  @unique
+  email     String   @unique
+  role      Role     @default(student)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student?
+
+  @@map("users")
+}
+
+model Student {
+  id                     String   @id @default(uuid())
+  userId                 String?  @unique
+  user                   User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  firstName              String
+  lastName               String
+  email                  String   @unique
+  enrollmentDate         String   @default("")
+  enrollmentStatus       Boolean  @default(false)
+  enrolledClasses        Json     @default("[]")
+  financialAid           Boolean  @default(false)
+  earnedDegrees          Json     @default("[]")
+  address                String   @default("")
+  zipCode                String   @default("")
+  state                  String   @default("")
+  phone                  String   @default("")
+  emergencyContact       String   @default("")
+  emergencyContactPhone  String   @default("")
+  authorizedPayer        String   @default("")
+  authorizedPayerPhone   String   @default("")
+  authorizedPayerAddress String   @default("")
+  authorizedPayerZip     String   @default("")
+  authorizedPayerState   String   @default("")
+  authorizedPayerEmail   String   @default("")
+  ada                    Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  ferpa          StudentFerpa?
+  financial      StudentFinancial?
+  adaRecord      StudentAda?
+  disciplinary   StudentDisciplinary[]
+  counselorNotes StudentCounselorNote[]
+  risk           StudentRisk?
+  academic       StudentAcademic?
+
+  @@map("students")
+}
+
+model StudentFerpa {
+  id                         String   @id @default(uuid())
+  studentId                  String   @unique
+  student                    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  ferpaWaiverOnFile          Boolean  @default(false)
+  ferpaWaiverDate            String   @default("")
+  ferpaWaiverScope           String   @default("")
+  educationRecordsReleasedTo Json     @default("[]")
+  directoryInfoOptOut        Boolean  @default(false)
+  holds                      Json     @default("[]")
+  notes                      String   @default("")
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@map("student_ferpa")
+}
+
+model StudentFinancial {
+  id                         String   @id @default(uuid())
+  studentId                  String   @unique
+  student                    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  financialAidStatus         String   @default("")
+  aidPackage                 Json     @default("{}")
+  expectedFamilyContribution Int      @default(0)
+  outstandingBalance         Float    @default(0)
+  paymentPlan                Boolean  @default(false)
+  scholarships               Json     @default("[]")
+  holds                      Json     @default("[]")
+  fafsaYear                  String   @default("")
+  lastDisbursementDate       String   @default("")
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@map("student_financial")
+}
+
+model StudentAda {
+  id                   String   @id @default(uuid())
+  studentId            String   @unique
+  student              Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  hasAccommodations    Boolean  @default(false)
+  accommodationTypes   Json     @default("[]")
+  diagnosisCategory    String   @default("")
+  documentationOnFile  Boolean  @default(false)
+  documentationDate    String   @default("")
+  assignedCoordinator  String   @default("")
+  activeAccommodations Boolean  @default(false)
+  semesterNotes        String   @default("")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("student_ada")
+}
+
+model StudentDisciplinary {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  incidentDate    String
+  incidentType    String
+  description     String
+  outcome         String
+  sanctionEndDate String   @default("")
+  hearingOfficer  String   @default("")
+  appealed        Boolean  @default(false)
+  appealOutcome   String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("student_disciplinary")
+}
+
+model StudentCounselorNote {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  counselorName  String
+  counselorType  String
+  noteDate       String
+  note           String
+  followUpDate   String   @default("")
+  followUpStatus String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("student_counselor_notes")
+}
+
+model StudentRisk {
+  id                 String   @id @default(uuid())
+  studentId          String   @unique
+  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  overallRiskLevel   String   @default("low")
+  gpa                Float    @default(0)
+  gpaTrend           String   @default("stable")
+  attendanceRate     Float    @default(100)
+  missedAssignments  Int      @default(0)
+  failingCourses     Json     @default("[]")
+  academicProbation  Boolean  @default(false)
+  interventionFlags  Json     @default("[]")
+  lastAssessmentDate String   @default("")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("student_risk")
+}
+
+model StudentAcademic {
+  id                  String   @id @default(uuid())
+  studentId           String   @unique
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  major               String   @default("")
+  minor               String   @default("")
+  concentration       String   @default("")
+  academicStanding    String   @default("good")
+  gpa                 Float    @default(0)
+  creditHoursEarned   Int      @default(0)
+  creditHoursRequired Int      @default(120)
+  expectedGraduation  String   @default("")
+  advisor             String   @default("")
+  transcript          Json     @default("[]")
+  currentCourses      Json     @default("[]")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("student_academic")
+}

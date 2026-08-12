@@ -1,0 +1,30 @@
+{
+  "name": "sis-demo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter @sis/api --filter @sis/web dev",
+    "dev:api": "pnpm --filter @sis/api dev",
+    "dev:web": "pnpm --filter @sis/web dev",
+    "build": "pnpm --filter @sis/shared build && pnpm --filter @sis/api build && pnpm --filter @sis/web build && pnpm --filter @sis/mcp-server build",
+    "start": "bash scripts/start.sh",
+    "stop": "bash scripts/stop.sh",
+    "restart": "pnpm stop && pnpm start",
+    "ensure-up": "bash scripts/ensure-up.sh",
+    "install-boot-service": "bash scripts/install-boot-service.sh",
+    "logs": "pnpm exec pm2 logs",
+    "status": "pnpm exec pm2 status",
+    "db:generate": "pnpm --filter @sis/api db:generate",
+    "db:migrate": "pnpm --filter @sis/api db:migrate",
+    "db:seed": "pnpm --filter @sis/api db:seed",
+    "db:push": "pnpm --filter @sis/api db:push"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma", "esbuild"]
+  },
+  "devDependencies": {
+    "pm2": "^5.4.3"
+  }
+}

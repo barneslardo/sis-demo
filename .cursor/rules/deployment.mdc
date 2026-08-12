@@ -1,0 +1,21 @@
+---
+description: Production hostnames and URL conventions for SIS demo
+alwaysApply: true
+---
+
+# SIS Demo — Deployment Hostnames
+
+Production DNS (use these in `.env`, Okta, SAML, CORS, and client API config):
+
+| Service | CNAME / public URL |
+|---------|-------------------|
+| **Web UI** | `https://sis.skylarbarnes.com` |
+| **API** | `https://sis-api.skylarbarnes.com` |
+
+- Set `APP_URL=https://sis.skylarbarnes.com`
+- Set `API_PUBLIC_URL=https://sis-api.skylarbarnes.com`
+- Set `VITE_API_URL=https://sis-api.skylarbarnes.com` (web app)
+- SAML Audience URI / SP Entity ID: `https://sis-api.skylarbarnes.com/auth/saml/metadata`
+- SAML ACS (Single sign-on URL): `https://sis-api.skylarbarnes.com/auth/saml/callback`
+
+Do not use `localhost` for SAML issuer/audience in production. Local ports (3010 API, 5173 web) are for reverse-proxy upstream only.
