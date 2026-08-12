@@ -1,5 +1,7 @@
 # SIS Demo — Student Information System
 
+> 🤖 **Setting this up with an AI coding agent?** Point it at [README-AGENT.md](README-AGENT.md) — a phased, verification-driven runbook written for agents.
+
 A demonstration Student Information System built with Node.js, React, and PostgreSQL. Uses **Okta OIDC** for sign-in (group-based admin vs student roles), OAuth 2.0 API access, and an MCP server for agentic AI integration.
 
 ## Architecture
@@ -295,23 +297,21 @@ Tools: `list_students`, `search_students`, `get_student`, `create_student`, `upd
    OIDC_SCOPES=openid profile email groups
    OPENAI_API_KEY=...   # and/or ANTHROPIC_API_KEY
    ```
-4. **Optional agent governance** (mirror `~/oktaAdminApp`):
+4. **Optional agent governance** (mirror the [super-duper-admin-portal](https://github.com/barneslardo/super-duper-admin-portal) pattern):
    - Register an Okta UD **AI agent** + custom AS resource (`RESOURCE_AS_ISSUER` = your `sis.*` AS)
    - Place agent signing key at `secrets/agent-private-key.json`
    - Set `AGENT_CLIENT_ID`, `OKTA_AGENT_REGISTRATION_ID`, and `secrets/agent-private-key.json`
    - `RESOURCE_AS_ISSUER` must be `https://sledai.oktapreview.com/oauth2/wlpzfntwqat4SXBba1d7`
 5. API routes: `POST /api/v1/chat`, `GET /api/v1/chat/models`, `GET /auth/oidc/login`
 
-**Import vars from your laptop file:**
+**Import vars from an existing admin-portal env file** (optional — if you already run the super-duper-admin-portal and want to reuse its Okta/LLM config):
 
 ```bash
-# On the machine where ~/Documents/SISadminsApp.txt lives:
-cp ~/Documents/SISadminsApp.txt /path/to/sisDemo/   # optional
-bash scripts/import-admin-env.sh ~/Documents/SISadminsApp.txt
+bash scripts/import-admin-env.sh /path/to/admin-portal-env.txt
 FAST_START=1 pnpm start
 ```
 
-The script maps admin-app keys (`OKTA_OIDC_*`, `AGENT_*`, LLM keys) to SIS `.env` and fixes the OIDC redirect URI for `sis-api.skylarbarnes.com`.
+The script maps admin-app keys (`OKTA_OIDC_*`, `AGENT_*`, LLM keys) to SIS `.env` and rewrites the OIDC redirect URI for the SIS API host.
 
 ## MCP Server (SIS API + Okta AI Agents + DCR)
 

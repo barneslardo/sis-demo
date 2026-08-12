@@ -1,18 +1,18 @@
 [Unit]
 Description=SIS Demo (PostgreSQL, API, Web)
-Documentation=https://github.com/skylarbarnes/sisDemo
+Documentation=https://github.com/barneslardo/sis-demo
 After=docker.service network-online.target
 Wants=docker.service network-online.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-User=skylar
-Group=skylar
-WorkingDirectory=/home/skylar/sisDemo
+User=__RUN_USER__
+Group=__RUN_GROUP__
+WorkingDirectory=__APP_DIR__
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=FAST_START=1
-ExecStart=/usr/bin/bash /home/skylar/sisDemo/scripts/ensure-up.sh
+ExecStart=/usr/bin/bash __APP_DIR__/scripts/ensure-up.sh
 TimeoutStartSec=300
 
 [Install]
