@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { HARDCODED_ADMIN_EMAILS } from "@sis/shared";
+import { demoAdminEmails } from "@sis/shared";
 
 const prisma = new PrismaClient();
 
@@ -136,7 +136,7 @@ async function main() {
     create: { email: "registrar@university.edu", role: "admin" },
   });
 
-  for (const email of HARDCODED_ADMIN_EMAILS) {
+  for (const email of demoAdminEmails()) {
     await prisma.user.upsert({
       where: { email },
       update: { role: "admin", active: true },

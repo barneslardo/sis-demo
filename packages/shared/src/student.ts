@@ -136,16 +136,30 @@ export function formatDisplayName(opts: {
 
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 
-/** Demo admins — always granted admin role regardless of Okta groups */
-export const HARDCODED_ADMIN_EMAILS = [
-  "demo-admin-1@example.com",
-  "demo-admin-2@example.com",
-  "demo-admin-3@example.com",
-] as const;
+/**
+ * Demo admins — always granted the admin role regardless of Okta groups.
+ *
+ * This is an authorization bypass that runs BEFORE the Okta group checks, so
+ * the list is deliberately not baked into source: supply it per deployment via
+ * the DEMO_ADMIN_EMAILS env var (comma-separated). It defaults to empty, which
+ * makes Okta group membership the only path to admin.
+ *
+ * The browser bundle imports this module, so the env read is lazy and reached
+ * through globalThis rather than evaluated at module load.
+ */
+export function demoAdminEmails(): readonly string[] {
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+    .process?.env;
+  const raw = env?.DEMO_ADMIN_EMAILS;
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
 
-export function isHardcodedAdmin(email: string): boolean {
-  const normalized = email.trim().toLowerCase();
-  return (HARDCODED_ADMIN_EMAILS as readonly string[]).includes(normalized);
+export function isDemoAdmin(email: string): boolean {
+  return demoAdminEmails().includes(email.trim().toLowerCase());
 }
 
 /** Okta group IDs (sledai.oktapreview.com) — must match Security → Groups */
@@ -192,7 +206,7 @@ export function isRegistrarGroup(groups: string[]): boolean {
 
 /** Okta staff groups → OAuth scopes (mirrors custom AS access policies). */
 export function resolveScopesFromGroups(email: string, groups: string[] = []): OAuthScope[] {
-  if (isHardcodedAdmin(email)) return [OAuthScopes.ADMIN];
+  if (isDemoAdmin(email)) return [OAuthScopes.ADMIN];
   if (isEnrollmentAdminGroup(groups)) return [OAuthScopes.ADMIN];
 
   const scopes = new Set<OAuthScope>();
@@ -220,7 +234,7 @@ export function resolveScopesFromGroups(email: string, groups: string[] = []): O
 }
 
 export function resolvePersonaLabel(email: string, groups: string[] = []): string | undefined {
-  if (isHardcodedAdmin(email)) return "Platform Admin";
+  if (isDemoAdmin(email)) return "Platform Admin";
   if (isEnrollmentAdminGroup(groups)) return "Enrollment Admin";
   if (isEnrollmentCounselorGroup(groups)) return "Enrollment Counselor";
   if (isStudentAffairsGroup(groups)) return "Student Affairs";
@@ -324,7 +338,7 @@ export function isStudentsGroup(groups: string[]): boolean {
  * Enrollment Admins + any other staff group → admin; neither → not authorized.
  */
 export function resolveOidcUserRole(email: string, groups: string[] = []): UserRole | null {
-  if (isHardcodedAdmin(email)) return "admin";
+  if (isDemoAdmin(email)) return "admin";
   if (isSisStaffGroup(groups)) return "admin";
   if (isStudentsGroup(groups)) return "student";
   return null;
@@ -338,7 +352,7 @@ export function mapGroupToRole(groups: string[]): UserRole {
 }
 
 export function resolveUserRole(email: string, groups: string[] = []): UserRole {
-  if (isHardcodedAdmin(email)) return "admin";
+  if (isDemoAdmin(email)) return "admin";
   return resolveOidcUserRole(email, groups) ?? "student";
 }
 

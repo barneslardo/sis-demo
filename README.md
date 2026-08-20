@@ -246,7 +246,7 @@ Students remain the SIS source of truth. Okta cannot push student records to SIS
 |---------|-----|
 | Student missing in Okta | Create in SIS → run SCIM **Import** (or use real-time push in §4) |
 | Admin "Matching user not found" then fails | Enable **Push**; assign user to app; API creates admin on `POST` |
-| Admin cannot sign in | Assign SAML app too; group name contains `admin` or email in `HARDCODED_ADMIN_EMAILS` |
+| Admin cannot sign in | Assign SAML app too; group name contains `admin`, or add the email to `DEMO_ADMIN_EMAILS` in `.env` |
 | Push rejected for student-shaped payload | Expected — create students in SIS only |
 
 ### 4. Real-time push to Okta (SIS API → Okta Users API)
