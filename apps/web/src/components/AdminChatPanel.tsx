@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { api } from "../api";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -12,10 +14,13 @@ export function AdminChatPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [models, setModels] = useState<ChatModel[]>([]);
   const [model, setModel] = useState("grok-4.3");
   const [provider, setProvider] = useState("grok");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const lastUserRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -46,9 +51,25 @@ export function AdminChatPanel() {
     }
   }, [open, models.length]);
 
+  // Keep the latest question at the top of the list so the answer reads
+  // downward from it rather than landing the reader at the bottom of a long
+  // reply. The spacer lets a short reply sit directly under its question.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading, open]);
+    const list = listRef.current;
+    const anchor = lastUserRef.current;
+    if (!list) return;
+    if (!anchor) {
+      list.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+      return;
+    }
+    const spacer = spacerRef.current;
+    if (spacer) {
+      spacer.style.height = "0px";
+      const tail = list.scrollHeight - anchor.offsetTop;
+      spacer.style.height = `${Math.max(0, list.clientHeight - tail - 12)}px`;
+    }
+    list.scrollTo({ top: Math.max(0, anchor.offsetTop - 12), behavior: "smooth" });
+  }, [messages, loading, error, open]);
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
@@ -56,26 +77,31 @@ export function AdminChatPanel() {
     const nextMessages: ChatMessage[] = [...messages, { role: "user", content: trimmed }];
     setMessages(nextMessages);
     setInput("");
+    setError(null);
+    await request(nextMessages);
+  }
+
+  // Errors stay out of the transcript: they are shown as a notice, never saved
+  // to localStorage, and never sent back to the model as conversation history.
+  async function request(history: ChatMessage[]) {
     setLoading(true);
     try {
-      const { data } = await api.sendChat({
-        messages: nextMessages,
-        model,
-        provider,
-      });
-      setMessages([...nextMessages, { role: "assistant", content: data.content }]);
+      const { data } = await api.sendChat({ messages: history, model, provider });
+      setMessages([...history, { role: "assistant", content: data.content }]);
     } catch (err) {
-      setMessages([
-        ...nextMessages,
-        {
-          role: "assistant",
-          content: err instanceof Error ? err.message : "Something went wrong.",
-        },
-      ]);
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
   }
+
+  function clearHistory() {
+    setMessages([]);
+    setError(null);
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  const lastUserIndex = messages.map((m) => m.role).lastIndexOf("user");
 
   return (
     <>
@@ -96,37 +122,62 @@ export function AdminChatPanel() {
               <strong>SIS Assistant</strong>
               <p>Search and manage student records with natural language.</p>
             </div>
-            {models.length > 0 && (
-              <select
-                value={model}
-                onChange={(e) => {
-                  const picked = models.find((m) => m.id === e.target.value);
-                  setModel(e.target.value);
-                  if (picked) setProvider(picked.provider);
-                }}
-              >
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            )}
+            <div className="chat-panel-header-actions">
+              {models.length > 0 && (
+                <select
+                  value={model}
+                  onChange={(e) => {
+                    const picked = models.find((m) => m.id === e.target.value);
+                    setModel(e.target.value);
+                    if (picked) setProvider(picked.provider);
+                  }}
+                >
+                  {models.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {messages.length > 0 && (
+                <button type="button" className="chat-clear" onClick={clearHistory} title="Clear conversation">
+                  Clear
+                </button>
+              )}
+            </div>
           </header>
 
-          <div className="chat-messages">
+          <div className="chat-messages" ref={listRef}>
             {messages.length === 0 && (
               <div className="chat-empty">
                 Try: &quot;How many students are enrolled?&quot; or &quot;Find students named Alice&quot;
               </div>
             )}
-            {messages.map((m, i) => (
-              <div key={i} className={`chat-bubble chat-bubble-${m.role}`}>
-                {m.content}
+            {messages.map((m, i) =>
+              m.role === "user" ? (
+                <div
+                  key={i}
+                  className="chat-bubble chat-bubble-user"
+                  ref={i === lastUserIndex ? lastUserRef : undefined}
+                >
+                  {m.content}
+                </div>
+              ) : (
+                <div key={i} className="chat-bubble chat-bubble-assistant chat-md">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                </div>
+              )
+            )}
+            {loading && <div className="chat-bubble chat-bubble-assistant chat-thinking">Thinking…</div>}
+            {error && !loading && (
+              <div className="chat-error" role="alert">
+                <span>{error}</span>
+                <button type="button" onClick={() => void request(messages)}>
+                  Try again
+                </button>
               </div>
-            ))}
-            {loading && <div className="chat-bubble chat-bubble-assistant">Thinking…</div>}
-            <div ref={bottomRef} />
+            )}
+            <div ref={spacerRef} aria-hidden="true" className="chat-spacer" />
           </div>
 
           <form
