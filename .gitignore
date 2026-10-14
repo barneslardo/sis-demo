@@ -11,3 +11,8 @@ SISadminsApp.txt
 coverage
 .pm2/
 *.tsbuildinfo
+
+# Local env variants and edit backups (e.g. .env.bak.*, *.bak.<ts>) hold real values
+.env.*
+!.env.example
+*.bak.*

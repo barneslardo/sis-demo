@@ -31,7 +31,7 @@ chatRouter.post("/", requireAdminSession, async (req, res, next) => {
       throw new AppError(
         503,
         "LLM_DISABLED",
-        "Set GROK_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY in .env"
+        "Set LLM_BASE_URL and LLM_API_KEY in .env"
       );
     }
 

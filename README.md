@@ -295,7 +295,8 @@ Tools: `list_students`, `search_students`, `get_student`, `create_student`, `upd
    OKTA_OIDC_CLIENT_SECRET=...
    OKTA_OIDC_REDIRECT_URI=https://sis-api.skylarbarnes.com/auth/oidc/callback
    OIDC_SCOPES=openid profile email groups
-   OPENAI_API_KEY=...   # and/or ANTHROPIC_API_KEY
+   LLM_BASE_URL=...     # OpenAI-compatible gateway (e.g. LiteLLM)
+   LLM_API_KEY=...
    ```
 4. **Optional agent governance** (mirror the [super-duper-admin-portal](https://github.com/barneslardo/super-duper-admin-portal) pattern):
    - Register an Okta UD **AI agent** + custom AS resource (`RESOURCE_AS_ISSUER` = your `sis.*` AS)

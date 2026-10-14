@@ -82,7 +82,7 @@ Recommended order. Restart the API after each `.env` change.
 
 - **[HUMAN]** Okta Admin Console → Applications → Create App Integration → **OIDC Web Application** (Authorization Code). Sign-in redirect URI: `<API_PUBLIC_URL>/auth/oidc/callback`. Assign test users/groups. Enable a **groups** claim on the ID token.
 - Agent: set in `.env`: `OKTA_OIDC_CLIENT_ID`, `OKTA_OIDC_CLIENT_SECRET`, `OKTA_OIDC_REDIRECT_URI=<API_PUBLIC_URL>/auth/oidc/callback`, `OIDC_SCOPES=openid profile email groups`.
-- For the admin chatbot also set `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` (from the engineer).
+- For the admin chatbot also set `LLM_BASE_URL` and `LLM_API_KEY` for an OpenAI-compatible gateway (e.g. LiteLLM); models are `gemma4` (default) or `grok-4.3`.
 - **Verify:** `GET /auth/oidc/login` redirects to Okta; after login you land back authenticated.
 
 ### 2b. Custom authorization server (needed for OAuth API access, MCP, ID-JAG)

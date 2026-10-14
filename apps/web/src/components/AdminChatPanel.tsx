@@ -16,8 +16,8 @@ export function AdminChatPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [models, setModels] = useState<ChatModel[]>([]);
-  const [model, setModel] = useState("grok-4.3");
-  const [provider, setProvider] = useState("grok");
+  const [model, setModel] = useState("gemma4");
+  const [provider, setProvider] = useState("litellm");
   const listRef = useRef<HTMLDivElement>(null);
   const lastUserRef = useRef<HTMLDivElement>(null);
   const spacerRef = useRef<HTMLDivElement>(null);
@@ -40,9 +40,7 @@ export function AdminChatPanel() {
       api.getChatModels().then(({ data }) => {
         setModels(data);
         const preferred =
-          data.find((m) => m.id === "grok-4.3") ??
-          data.find((m) => m.provider === "grok") ??
-          data[0];
+          data.find((m) => m.id === "gemma4") ?? data[0];
         if (preferred) {
           setModel(preferred.id);
           setProvider(preferred.provider);
