@@ -31,7 +31,10 @@ export function AuthProvider() {
         </div>
         <nav>
           {data.data.role === "admin" ? (
-            <Link to="/admin/students">Students</Link>
+            <>
+              <Link to="/admin/students">Students</Link>
+              <Link to="/admin/applicants">Admissions</Link>
+            </>
           ) : (
             <Link to="/profile">My Profile</Link>
           )}

@@ -233,6 +233,11 @@ export function resolveScopesFromGroups(email: string, groups: string[] = []): O
   return [...scopes];
 }
 
+/** Admissions approve/deny: Enrollment Counselors + Enrollment Admins (and demo admins). */
+export function canDecideAdmissions(email: string, groups: string[] = []): boolean {
+  return isDemoAdmin(email) || isEnrollmentAdminGroup(groups) || isEnrollmentCounselorGroup(groups);
+}
+
 export function resolvePersonaLabel(email: string, groups: string[] = []): string | undefined {
   if (isDemoAdmin(email)) return "Platform Admin";
   if (isEnrollmentAdminGroup(groups)) return "Enrollment Admin";

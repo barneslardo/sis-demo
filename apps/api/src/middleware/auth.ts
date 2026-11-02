@@ -3,6 +3,7 @@ import {
   OAuthScopes,
   type AuthUser,
   type OAuthScope,
+  canDecideAdmissions,
   capDelegatedScopes,
   hasAnyScope,
   resolveScopesFromGroups,
@@ -90,6 +91,13 @@ export function requireAdmin(req: Request, _res: Response, next: NextFunction) {
     return next();
   }
   return next(new AppError(403, "FORBIDDEN", "Admin access required"));
+}
+
+/** Admission decisions: counselor/admin session, or an OAuth caller with sis.admin. */
+export function requireAdmissionsDecision(req: Request, _res: Response, next: NextFunction) {
+  if (req.user && canDecideAdmissions(req.user.email, req.user.groups ?? [])) return next();
+  if (req.oauth && req.oauth.scopes.includes(OAuthScopes.ADMIN)) return next();
+  return next(new AppError(403, "FORBIDDEN", "Enrollment Counselor or Enrollment Admin required"));
 }
 
 export function requireStaffStudentRead(req: Request, _res: Response, next: NextFunction) {

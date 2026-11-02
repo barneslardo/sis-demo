@@ -103,11 +103,19 @@ export async function createOktaUser(
   return user;
 }
 
+/**
+ * Partial profile update (POST). PUT replaces the whole profile, which wiped attributes the SIS
+ * doesn't own (secondEmail, intake fields, admissionStatus) on every student edit.
+ */
 export async function updateOktaUser(
   oktaUserId: string,
   profile: Record<string, unknown>
 ): Promise<OktaUser> {
-  return oktaRequest<OktaUser>("PUT", `/users/${oktaUserId}`, { profile });
+  return oktaRequest<OktaUser>("POST", `/users/${oktaUserId}`, { profile });
+}
+
+export async function getOktaUser(oktaUserId: string): Promise<OktaUser> {
+  return oktaRequest<OktaUser>("GET", `/users/${encodeURIComponent(oktaUserId)}`);
 }
 
 export async function deactivateOktaUser(oktaUserId: string): Promise<void> {
