@@ -6,6 +6,7 @@ import { StudentListPage } from "./pages/StudentListPage";
 import { StudentFormPage } from "./pages/StudentFormPage";
 import { StudentDetailPage } from "./pages/StudentDetailPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { ApplicantsPage } from "./pages/ApplicantsPage";
 import { api } from "./api";
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="/admin/students/:id/edit" element={<StudentFormPage />} />
           </Route>
           <Route path="/admin/students/:id" element={<StudentDetailPage />} />
+          <Route path="/admin/applicants" element={<ApplicantsPage />} />
         </Route>
         <Route element={<StudentGuard />}>
           <Route path="/profile" element={<ProfilePage />} />

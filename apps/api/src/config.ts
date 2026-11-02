@@ -33,6 +33,8 @@ function normalizeOktaApiToken(raw: string): string {
 }
 
 const oktaApiToken = normalizeOktaApiToken(optional("OKTA_API_TOKEN"));
+
+const scimToken = optional("SCIM_API_TOKEN").trim();
 const oktaPushExplicit = process.env.OKTA_PUSH_ENABLED;
 const oktaPushEnabled =
   oktaPushExplicit === "true" || (oktaPushExplicit !== "false" && Boolean(oktaApiToken));
@@ -98,6 +100,21 @@ export const config = {
     /** Must match Okta custom AS Audience AND PRM `resource` (typically https://host/mcp). */
     audience: optional("OKTA_AUDIENCE"),
     enabled: Boolean(process.env.OKTA_ISSUER),
+  },
+
+  /** Okta → SIS: SCIM 2.0 provisioning of applicants (Okta SCIM app, bearer token auth). */
+  scim: {
+    token: scimToken,
+    /** Placeholder or short tokens leave /scim/v2 disabled (503). */
+    enabled: scimToken.length >= 32 && !scimToken.startsWith("change-me"),
+  },
+
+  /** Admissions: approval generates `first.last@<domain>` university emails. */
+  admissions: {
+    universityEmailDomain: optional("UNIVERSITY_EMAIL_DOMAIN", "university.edu")
+      .trim()
+      .replace(/^@/, "")
+      .toLowerCase(),
   },
 
   /** SIS → Okta: push student CRUD via Okta Management API (Users API). */

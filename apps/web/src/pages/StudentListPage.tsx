@@ -1,12 +1,23 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { hasScope, OAuthScopes } from "@sis/shared";
 import { api } from "../api";
 
 export function StudentListPage() {
+  // searchInput is what's typed; search is the debounced term that drives the query.
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const term = searchInput.trim();
+    const timer = setTimeout(() => {
+      setSearch(term);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
   const queryClient = useQueryClient();
 
   const { data: me } = useQuery({
@@ -18,9 +29,12 @@ export function StudentListPage() {
     hasScope(scopes, OAuthScopes.STUDENTS_WRITE) || hasScope(scopes, OAuthScopes.ADMIN);
   const canSeeAcademic = hasScope(scopes, OAuthScopes.STUDENTS_ACADEMIC) || hasScope(scopes, OAuthScopes.ADMIN);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, isFetching, error } = useQuery({
     queryKey: ["students", page, search],
     queryFn: () => api.listStudents({ page, limit: 20, search: search || undefined }),
+    // Keep the table (and the search box) mounted while a new search loads; replacing the
+    // page with the loading screen unmounted the input and dropped focus on every keystroke.
+    placeholderData: keepPreviousData,
   });
 
   const deleteMutation = useMutation({
@@ -28,8 +42,8 @@ export function StudentListPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["students"] }),
   });
 
-  if (isLoading) return <div className="loading-screen">Loading students…</div>;
-  if (error) return <div className="container"><div className="error">{(error as Error).message}</div></div>;
+  if (isLoading && !data) return <div className="loading-screen">Loading students…</div>;
+  if (error && !data) return <div className="container"><div className="error">{(error as Error).message}</div></div>;
 
   const { data: students, meta } = data!;
 
@@ -49,18 +63,20 @@ export function StudentListPage() {
           className="search-bar"
           onSubmit={(e) => {
             e.preventDefault();
+            setSearch(searchInput.trim());
             setPage(1);
           }}
         >
           <input
             placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-          <button className="btn btn-secondary" type="submit">
-            Search
+          <button className="btn btn-secondary" type="submit" disabled={isFetching}>
+            {isFetching ? "Searching…" : "Search"}
           </button>
         </form>
+        {error && <div className="error">{(error as Error).message}</div>}
 
         <div className="table-wrap">
         <table>

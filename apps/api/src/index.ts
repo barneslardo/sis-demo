@@ -11,6 +11,8 @@ import { requestId } from "./middleware/requestId.js";
 import { authRouter } from "./routes/auth.js";
 import { chatRouter } from "./routes/chat.js";
 import { studentsRouter } from "./routes/students.js";
+import { applicantsRouter } from "./routes/applicants.js";
+import { scimRouter } from "./routes/scim.js";
 import { generateOpenApiDocument } from "./openapi.js";
 import { mountMcpRoutes, getMcpPublicInfo } from "./mcp/routes.js";
 import { isOidcEnabled } from "./lib/oidc.js";
@@ -74,6 +76,7 @@ app.get("/health", (_req, res) => {
       orgUrl: config.oktaPush.orgUrl || null,
       extendedProfile: config.oktaPush.includeExtendedProfile,
     },
+    scim: config.scim.enabled,
     mcp: getMcpPublicInfo(),
   });
 });
@@ -87,6 +90,8 @@ app.get("/api/v1/openapi.json", (_req, res) => {
 app.use("/auth", authRouter);
 app.use("/api/v1/chat", apiLimiter, chatRouter);
 app.use("/api/v1/students", apiLimiter, studentsRouter);
+app.use("/api/v1/applicants", apiLimiter, applicantsRouter);
+app.use("/scim/v2", scimRouter);
 
 app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof ZodError) {

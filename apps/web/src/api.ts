@@ -79,6 +79,25 @@ export const api = {
     }),
   deleteStudent: (id: string) =>
     fetchJson<void>(`/api/v1/students/${id}`, { method: "DELETE" }),
+  listApplicants: (status: ApplicantStatusFilter = "pending") =>
+    fetchJson<{ data: ApplicantRecord[]; meta: Record<ApplicantStatus, number> }>(
+      `/api/v1/applicants?status=${status}`
+    ),
+  decideApplicant: (id: string, decision: "approve" | "deny") =>
+    fetchJson<{ data: ApplicantRecord; oktaSync: ApplicantOktaSync }>(
+      `/api/v1/applicants/${id}/decision`,
+      { method: "POST", body: JSON.stringify({ decision }) }
+    ),
+  removeApplicant: (id: string) =>
+    fetchJson<{ data: { removedApplicant: string; removedStudentId: string | null } }>(
+      `/api/v1/applicants/${id}`,
+      { method: "DELETE" }
+    ),
+  retryApplicantOktaSync: (id: string) =>
+    fetchJson<{ data: ApplicantRecord; oktaSync: ApplicantOktaSync }>(
+      `/api/v1/applicants/${id}/sync-okta`,
+      { method: "POST" }
+    ),
   getStudentFerpa: (id: string) =>
     fetchJson<{ data: StudentFerpaRecord | null }>(`/api/v1/students/${id}/ferpa`),
   getStudentFinancial: (id: string) =>
@@ -197,4 +216,35 @@ export type StudentAcademicRecord = {
   advisor: string;
   transcript: unknown[];
   currentCourses: unknown[];
+};
+
+export type ApplicantStatus = "pending" | "approved" | "denied";
+export type ApplicantStatusFilter = ApplicantStatus | "all";
+
+export type ApplicantOktaSync =
+  | { ok: true; oktaId: string; profile: Record<string, string>; at: string }
+  | { ok: false; skipped: true; reason: string; at: string }
+  | { ok: false; error: string; at: string };
+
+export type ApplicantRecord = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  personalEmail: string;
+  userName: string;
+  phone: string;
+  intendedProgram: string;
+  intendedProgramLabel: string;
+  entryTerm: string;
+  highSchool: string;
+  active: boolean;
+  status: ApplicantStatus;
+  decidedBy: string;
+  decidedAt: string | null;
+  universityEmail: string | null;
+  studentNumber: string | null;
+  studentId: string | null;
+  oktaLinked: boolean;
+  oktaSync: ApplicantOktaSync | null;
+  appliedAt: string;
 };

@@ -60,8 +60,47 @@ model Student {
   counselorNotes StudentCounselorNote[]
   risk           StudentRisk?
   academic       StudentAcademic?
+  applicant      Applicant?
 
   @@map("students")
+}
+
+enum ApplicantStatus {
+  pending
+  approved
+  denied
+}
+
+/// Prospective student provisioned from Okta (SCIM) after Google sign-up + progressive profiling.
+/// Counselors approve/deny here; approval creates the Student and writes the decision back to Okta.
+model Applicant {
+  id              String          @id @default(uuid())
+  /// Okta user id (SCIM externalId / oktaUserId extension attr, else looked up by userName).
+  oktaId          String?         @unique
+  /// Okta login at intake time (the applicant's personal Google email).
+  userName        String          @unique
+  firstName       String
+  lastName        String
+  personalEmail   String
+  phone           String          @default("")
+  intendedProgram String          @default("")
+  entryTerm       String          @default("")
+  highSchool      String          @default("")
+  /// SCIM active flag (false = deprovisioned/withdrawn in Okta).
+  active          Boolean         @default(true)
+  status          ApplicantStatus @default(pending)
+  decidedBy       String          @default("")
+  decidedAt       DateTime?
+  universityEmail String?         @unique
+  studentNumber   String?         @unique
+  studentId       String?         @unique
+  student         Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  /// Result of the last decision write-back to Okta.
+  oktaSync        Json?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("applicants")
 }
 
 model StudentFerpa {
